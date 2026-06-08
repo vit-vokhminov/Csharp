@@ -2,7 +2,6 @@
   "profiles": {
     "TemplateService.Web": {
       "commandName": "Project",
-      "workingDirectory": "C:\\1_MyWork\\1_sachkov\\backend\\TemplateService\\src\\TemplateService.Web"
     }
   }
 }
