@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "TemplateService.Web": {
+      "commandName": "Project",
+    }
+  }
+}
