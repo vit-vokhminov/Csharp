@@ -1,0 +1,4 @@
+<Solution>
+    <Project Path="CeterReservationService/CeterReservationService.csproj" />
+    <Project Path="SeatReservation.Domain/SeatReservation.Domain.csproj" />
+</Solution>
