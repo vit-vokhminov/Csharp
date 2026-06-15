@@ -110,7 +110,7 @@ public class Department
 
         if (parentId == Guid.Empty)
         {
-            throw new DomainException("department.parentld.empty", "Идентификатор родительского подразделения не может быть пустым.");
+            throw new DomainException("department.parentId.empty", "Идентификатор родительского подразделения не может быть пустым.");
         }
 
         var nameValue = Name.Create(name);
@@ -144,7 +144,7 @@ public class Department
     {
         if (newParentId.HasValue && newParentId.Value == Guid.Empty)
         {
-            throw new DomainException("department.parentld.empty", "Идентификатор родительского подразделения не может быть пустым.");
+            throw new DomainException("department.parentId.empty", "Идентификатор родительского подразделения не может быть пустым.");
         }
 
         Path = newPath;
