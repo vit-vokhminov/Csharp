@@ -16,12 +16,12 @@ public class DepartmentPosition
     /// <summary>
     /// Идентификатор подразделения.
     /// </summary>
-    public Guid Departmentld { get; private set; }
+    public Guid DepartmentId { get; private set; }
 
     /// <summary>
     /// Идентификатор должности.
     /// </summary>
-    public Guid Positionld { get; private set; }
+    public Guid PositionId { get; private set; }
 
     /// <summary>
     /// Дата создания записи.
@@ -38,14 +38,14 @@ public class DepartmentPosition
     /// </summary>
     private DepartmentPosition(
         Guid id,
-        Guid departmentld,
-        Guid positionld,
+        Guid departmentId,
+        Guid positionId,
         DateTime createdAt,
         DateTime updatedAt)
     {
         Id = id;
-        Departmentld = departmentld;
-        Positionld = positionld;
+        DepartmentId = departmentId;
+        PositionId = positionId;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
     }
@@ -54,31 +54,41 @@ public class DepartmentPosition
     /// Создаёт связь подразделения с должностью.
     /// </summary>
     public static DepartmentPosition Create(
-    Guid id,
-    Guid departmentld,
-    Guid positionld,
-    DateTime createdAt)
+        Guid id,
+        Guid departmentId,
+        Guid positionId,
+        DateTime createdAt)
     {
         if (id == Guid.Empty)
         {
             throw new DomainException("departmentPosition.id.empty", "Идентификатор связи не может быть пустым.");
         }
 
-        if (departmentld == Guid.Empty)
+        if (departmentId == Guid.Empty)
         {
-            throw new DomainException("departmentPosition.departmentld.empty", "Идентификатор подразделения не может быть пустым.");
+            throw new DomainException("departmentPosition.departmentId.empty", "Идентификатор подразделения не может быть пустым.");
         }
 
-        if (positionld == Guid.Empty)
+        if (positionId == Guid.Empty)
         {
-            throw new DomainException("departmentPosition.positionld.empty", "Идентификатор должности не может быть пустым.");
+            throw new DomainException("departmentPosition.positionId.empty", "Идентификатор должности не может быть пустым.");
         }
 
+        // Изначально UpdatedAt совпадает с CreatedAt
         return new DepartmentPosition(
             id,
-            departmentld,
-            positionld,
+            departmentId,
+            positionId,
             createdAt,
-            createdAt);
+            updatedAt: createdAt);
+    }
+
+    /// <summary>
+    /// Обновляет временную метку последнего изменения.
+    /// Используется при изменении связи.
+    /// </summary>
+    public void UpdateTimestamp(DateTime updatedAt)
+    {
+        UpdatedAt = updatedAt;
     }
 }

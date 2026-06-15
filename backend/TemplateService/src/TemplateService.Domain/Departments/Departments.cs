@@ -10,7 +10,6 @@ public class Department
     /// <summary>
     /// Идентификатор подразделения.
     /// </summary>
-
     public Guid Id { get; private set; }
 
     /// <summary>
@@ -31,7 +30,7 @@ public class Department
     /// <summary>
     /// Идентификатор родительского подразделения. Для корневого - null.
     /// </summary>
-    public Guid? Parentld { get; private set; }
+    public Guid? ParentId { get; private set; }
 
     /// <summary>
     /// Дата создания записи.
@@ -47,19 +46,19 @@ public class Department
     /// Приватный конструктор для ORM и фабрик.
     /// </summary>
     private Department(
-    Guid id,
-    Name name,
-    Slug slug,
-    TreePath path,
-    Guid? parentld,
-    DateTime createdAt,
-    DateTime updatedAt)
+        Guid id,
+        Name name,
+        Slug slug,
+        TreePath path,
+        Guid? parentId,
+        DateTime createdAt,
+        DateTime updatedAt)
     {
         Id = id;
         Name = name;
         Slug = slug;
         Path = path;
-        Parentld = parentld;
+        ParentId = parentId;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
     }
@@ -78,18 +77,19 @@ public class Department
             throw new DomainException("department.id.empty", "Идентификатор подразделения не может быть пустым.");
         }
 
-        var nameVo = Name.Create(name);
-        var slugVo = Slug.Create(slug);
-        var path = TreePath.CreateRoot(slugVo);
+        var nameValue = Name.Create(name);
+        var slugValue = Slug.Create(slug);
+        var path = TreePath.CreateRoot(slugValue);
 
+        // Изначально UpdatedAt совпадает с CreatedAt
         return new Department(
             id,
-            nameVo,
-            slugVo,
+            nameValue,
+            slugValue,
             path,
             null,
             createdAt,
-            createdAt);
+            updatedAt: createdAt);
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public class Department
         Guid id,
         string name,
         string slug,
-        Guid parentld,
+        Guid parentId,
         TreePath parentPath,
         DateTime createdAt)
     {
@@ -108,23 +108,24 @@ public class Department
             throw new DomainException("department.id.empty", "Идентификатор подразделения не может быть пустым.");
         }
 
-        if (parentld == Guid.Empty)
+        if (parentId == Guid.Empty)
         {
             throw new DomainException("department.parentld.empty", "Идентификатор родительского подразделения не может быть пустым.");
         }
 
-        var nameVo = Name.Create(name);
-        var slugVo = Slug.Create(slug);
-        var path = TreePath.CreateChild(parentPath, slugVo);
+        var nameValue = Name.Create(name);
+        var slugValue = Slug.Create(slug);
+        var path = TreePath.CreateChild(parentPath, slugValue);
 
+        // Изначально UpdatedAt совпадает с CreatedAt
         return new Department(
             id,
-            nameVo,
-            slugVo,
+            nameValue,
+            slugValue,
             path,
-            parentld,
+            parentId,
             createdAt,
-            createdAt);
+            updatedAt: createdAt);
     }
 
     /// <summary>
@@ -139,15 +140,15 @@ public class Department
     /// <summary>
     /// Обновляет путь подразделения. Используется при перемещении в дереве.
     /// </summary>
-    public void UpdatePath(TreePath newPath, Guid? newParentld, DateTime updatedAt)
+    public void UpdatePath(TreePath newPath, Guid? newParentId, DateTime updatedAt)
     {
-        if (newParentld.HasValue && newParentld.Value == Guid.Empty)
+        if (newParentId.HasValue && newParentId.Value == Guid.Empty)
         {
-            throw new DomainException("department.parentId.empty", "Идентификатор родительского подразделения не может быть пустым.");
+            throw new DomainException("department.parentld.empty", "Идентификатор родительского подразделения не может быть пустым.");
         }
 
         Path = newPath;
-        Parentld = newParentld;
+        ParentId = newParentId;
         UpdatedAt = updatedAt;
     }
 

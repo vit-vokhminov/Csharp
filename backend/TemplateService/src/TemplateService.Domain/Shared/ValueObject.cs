@@ -6,6 +6,7 @@ namespace TemplateService.Domain.Primitives;
 public abstract class ValueObject
 {
     protected abstract IEnumerable<object> GetEqualityComponents();
+
     public override bool Equals(object? obj)
     {
         if (obj is null || obj.GetType() != GetType())
@@ -16,10 +17,11 @@ public abstract class ValueObject
         var other = (ValueObject)obj;
         return GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
     }
+
     public override int GetHashCode()
     {
         return GetEqualityComponents()
-        .Select(x => x?.GetHashCode() ?? 0)
-        .Aggregate((x, у) => x ^ у);
+            .Select(x => x?.GetHashCode() ?? 0)
+            .Aggregate((x, y) => x ^ y);
     }
 }

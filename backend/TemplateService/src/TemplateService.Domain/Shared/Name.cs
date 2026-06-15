@@ -1,7 +1,7 @@
 namespace TemplateService.Domain.Primitives;
 
 /// <summary>
-/// Отображаемое название сущности. Может быть переименовано без изменения стабильного slug. 
+/// Отображаемое название сущности. Может быть переименовано без изменения стабильного slug.
 /// </summary>
 public sealed class Name : ValueObject
 {
@@ -24,14 +24,20 @@ public sealed class Name : ValueObject
 
         var trimmed = value.Trim();
 
+        // Проверка, что после обрезки строка не стала пустой
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            throw new DomainException("name.empty.after.trim", "Название не может состоять только из пробелов.");
+        }
+
         if (trimmed.Length > 200)
         {
             throw new DomainException("name.too.long", "Название не может быть длиннее 200 символов.");
         }
 
         return new Name(trimmed);
-
     }
+
     protected override IEnumerable<object> GetEqualityComponents()
     {
         yield return Value;

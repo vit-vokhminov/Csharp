@@ -4,19 +4,20 @@ namespace TemplateService.Domain.Primitives;
 
 /// <summary>
 /// Короткий стабильный код сущности для URL, интеграций и дерева.
-/// Не равен отображаемому названию: name можно переименовать, а	стабильный	код	лучше	не менять.
+/// Не равен отображаемому названию: name можно переименовать, а стабильный код лучше не менять.
 /// </summary>
 public sealed class Slug : ValueObject
 {
     /// <summary>
-    /// Регулярное выражение для валидации slug: только строчные	латинские	буквы,	цифры и	дефисы
+    /// Регулярное выражение для валидации slug: только строчные латинские буквы, цифры и дефисы
     /// </summary>
     private static readonly Regex SlugPattern = new(
-       @"A[a-z0-9]+(?:-[a-z0-9]+)*$",
+       @"^[a-z0-9]+(?:-[a-z0-9]+)*$",
        RegexOptions.Compiled,
        TimeSpan.FromMilliseconds(100));
 
     public string Value { get; }
+
     private Slug(string value)
     {
         Value = value;
@@ -27,6 +28,11 @@ public sealed class Slug : ValueObject
     /// </summary>
     public static Slug Create(string value)
     {
+        if (value is null)
+        {
+            throw new DomainException("slug.null", "Slug не может быть null.");
+        }
+
         if (string.IsNullOrWhiteSpace(value))
         {
             throw new DomainException("slug.empty", "Slug не может быть пустым.");
@@ -40,8 +46,8 @@ public sealed class Slug : ValueObject
         if (!SlugPattern.IsMatch(value))
         {
             throw new DomainException(
-            "slug.invalid.format",
-            "Slug может содержать только строчные латинские буквы, цифры и дефисы. Пример: 'sales', 'b2b-sales'.");
+                "slug.invalid.format",
+                "Slug может содержать только строчные латинские буквы, цифры и дефисы. Пример: 'sales', 'b2b-sales'.");
         }
 
         return new Slug(value);

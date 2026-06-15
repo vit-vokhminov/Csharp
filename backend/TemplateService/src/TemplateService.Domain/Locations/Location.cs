@@ -30,18 +30,17 @@ public class Location
     /// <summary>
     /// Дата последнего изменения записи.
     /// </summary>
-
     public DateTime UpdatedAt { get; private set; }
 
     /// <summary>
     /// Приватный конструктор для ORM и фабрик.
     /// </summary>
     private Location(
-    Guid id,
-    Name name,
-    Address address,
-    DateTime createdAt,
-    DateTime updatedAt)
+        Guid id,
+        Name name,
+        Address address,
+        DateTime createdAt,
+        DateTime updatedAt)
     {
         Id = id;
         Name = name;
@@ -64,15 +63,16 @@ public class Location
             throw new DomainException("location.id.empty", "Идентификатор локации не может быть пустым.");
         }
 
-        var nameVo = Name.Create(name);
-        var addressVo = Address.Create(address);
+        var nameValue = Name.Create(name);
+        var addressValue = Address.Create(address);
 
+        // Изначально UpdatedAt совпадает с CreatedAt
         return new Location(
-        id,
-        nameVo,
-        addressVo,
-        createdAt,
-        createdAt);
+            id,
+            nameValue,
+            addressValue,
+            createdAt,
+            updatedAt: createdAt);
     }
 
     /// <summary>

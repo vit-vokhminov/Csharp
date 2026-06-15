@@ -29,7 +29,7 @@ public class Position
 
     /// <summary>
     /// Приватный конструктор для ORM и фабрик.
-    /// </summary> ВИнИИдЙИН
+    /// </summary>
     private Position(
         Guid id,
         Name name,
@@ -45,6 +45,11 @@ public class Position
     /// <summary>
     /// Создаёт новую должность.
     /// </summary>
+    /// <param name="id">Идентификатор должности.</param>
+    /// <param name="name">Название должности.</param>
+    /// <param name="createdAt">Дата создания записи.</param>
+    /// <returns>Экземпляр Position.</returns>
+    /// <exception cref="DomainException">Выбрасывается, если идентификатор пустой.</exception>
     public static Position Create(
         Guid id,
         string name,
@@ -57,16 +62,19 @@ public class Position
 
         var nameVo = Name.Create(name);
 
+        // Изначально UpdatedAt совпадает с CreatedAt
         return new Position(
             id,
             nameVo,
             createdAt,
-            createdAt);
+            updatedAt: createdAt);
     }
 
     /// <summary>
     /// Переименовывает должность.
     /// </summary>
+    /// <param name="newName">Новое название должности.</param>
+    /// <param name="updatedAt">Дата последнего изменения.</param>
     public void Rename(string newName, DateTime updatedAt)
     {
         Name = Name.Create(newName);

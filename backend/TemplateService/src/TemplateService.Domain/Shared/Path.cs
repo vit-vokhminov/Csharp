@@ -35,7 +35,7 @@ public sealed class TreePath : ValueObject
 
         if (value.EndsWith('/'))
         {
-            throw new DomainException("path.trailing.slash", "Путь не должен заканчиваться на '/'•");
+            throw new DomainException("path.trailing.slash", "Путь не должен заканчиваться на '/'.");
         }
 
         var segments = value.Split('/');
@@ -54,8 +54,8 @@ public sealed class TreePath : ValueObject
             catch (DomainException)
             {
                 throw new DomainException(
-                "path.invalid.segment",
-                $"Сегмент пути 'segment * не является валидным slug.");
+                    "path.invalid.segment",
+                    $"Сегмент пути '{segment}' не является валидным slug.");
             }
         }
 

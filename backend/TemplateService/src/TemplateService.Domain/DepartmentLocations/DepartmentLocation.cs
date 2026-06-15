@@ -16,12 +16,12 @@ public class DepartmentLocation
     /// <summary>
     /// Идентификатор подразделения.
     /// </summary>
-    public Guid Departmentld { get; private set; }
+    public Guid DepartmentId { get; private set; }
 
     /// <summary>
     /// Идентификатор локации.
     /// </summary>
-    public Guid Locationld { get; private set; }
+    public Guid LocationId { get; private set; }
 
     /// <summary>
     /// Признак основной локации подразделения.
@@ -39,18 +39,19 @@ public class DepartmentLocation
     public DateTime UpdatedAt { get; private set; }
 
     /// <summary>
-    /// Приватный конструктор для ORR и фабрик.
+    /// Приватный конструктор для ORM и фабрик.
     /// </summary>
     private DepartmentLocation(
-    Guid id,
-    Guid departmentld,
-    Guid locationld, bool isPrimary,
-    DateTime createdAt,
-    DateTime updatedAt)
+        Guid id,
+        Guid departmentId,
+        Guid locationId,
+        bool isPrimary,
+        DateTime createdAt,
+        DateTime updatedAt)
     {
         Id = id;
-        Departmentld = departmentld;
-        Locationld = locationld;
+        DepartmentId = departmentId;
+        LocationId = locationId;
         IsPrimary = isPrimary;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
@@ -61,8 +62,8 @@ public class DepartmentLocation
     /// </summary>
     public static DepartmentLocation Create(
         Guid id,
-        Guid departmentld,
-        Guid locationld,
+        Guid departmentId,
+        Guid locationId,
         bool isPrimary,
         DateTime createdAt)
     {
@@ -71,23 +72,24 @@ public class DepartmentLocation
             throw new DomainException("departmentLocation.id.empty", "Идентификатор связи не может быть пустым.");
         }
 
-        if (departmentld == Guid.Empty)
+        if (departmentId == Guid.Empty)
         {
-            throw new DomainException("departmentLocation.departmentld.empty", "Идентификатор подразделения не может быть пустым.");
+            throw new DomainException("departmentLocation.departmentId.empty", "Идентификатор подразделения не может быть пустым.");
         }
 
-        if (locationld == Guid.Empty)
+        if (locationId == Guid.Empty)
         {
-            throw new DomainException("departmentLocation.locationld.empty", "Идентификатор локации не может быть пустым.");
+            throw new DomainException("departmentLocation.locationId.empty", "Идентификатор локации не может быть пустым.");
         }
 
+        // Изначально UpdatedAt совпадает с CreatedAt
         return new DepartmentLocation(
             id,
-            departmentld,
-            locationld,
+            departmentId,
+            locationId,
             isPrimary,
             createdAt,
-            createdAt);
+            updatedAt: createdAt);
     }
 
     /// <summary>
