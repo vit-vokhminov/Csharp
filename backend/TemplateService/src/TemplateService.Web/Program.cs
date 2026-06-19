@@ -17,11 +17,11 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddDbContext<TemplateServiceDbContext>((serviceProvider, options) =>
 {
     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-    string? connectionString = configuration.GetConnectionString("Postgres");
+    string? connectionString = configuration.GetConnectionString("postgres");
 
     if (string.IsNullOrWhiteSpace(connectionString))
     {
-        throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
+        throw new InvalidOperationException("Connection string 'postgres' is not configured.");
     }
 
     options.UseNpgsql(connectionString);
