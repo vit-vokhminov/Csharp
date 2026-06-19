@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using TemplateService.Infrastructure.Postgres;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,13 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
 builder.Services.AddHealthChecks();
+
+builder.Services.AddDbContext<TemplateServiceDbContext>((serviceProvider, options) =>
+{
+    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    string configurationString = configuration.GetConnectionString("Postgress")!;
+    options.UseNpgsql(configurationString);
+});
 
 WebApplication app = builder.Build();
 
