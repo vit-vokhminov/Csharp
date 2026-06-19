@@ -17,7 +17,7 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddDbContext<TemplateServiceDbContext>((serviceProvider, options) =>
 {
     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-    string? connectionString = configuration.GetConnectionString("Postgress");
+    string? connectionString = configuration.GetConnectionString("Postgres");
 
     if (string.IsNullOrWhiteSpace(connectionString))
     {
