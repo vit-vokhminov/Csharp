@@ -15,3 +15,6 @@ docker compose up -d postgres стартует контейнер; данные 
 В Program.cs AppDbContext зарегистрирован как scoped с провайдером PostgreSQL и строкой подключения из конфигурации
 dotnet run стартует без DI-ошибок и без ругани на отсутствие провайдера или строки подключения
 К поднятому PostgreSQL можно подключиться psql -h localhost -p 5433 -U <user> <db> с теми же кредами, что у приложения
+
+
+Подключение PostgreSQL не заработает: в Program.cs запрашивается строка подключения «Postgress», а в appsettings.json она лежит под именем «ReservationServiceDb». Приложение упадёт при старте из‑за null‑строки. Также в appsettings.json закоммитированы реальные креды БД — задание требует хранить их в .env, а не в коде.
