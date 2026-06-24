@@ -69,7 +69,7 @@ internal sealed class DepartmentConfiguration : IEntityTypeConfiguration<Departm
         builder.HasOne<Department>()
             .WithMany()
             .HasForeignKey(d => d.ParentId)
-            .OnDelete(DeleteBehavior.ClientSetNull) // Изменено: более безопасная стратегия удаления
+            .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName(DepartmentParentFk);
     }
 }
