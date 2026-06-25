@@ -41,6 +41,9 @@ dotnet_diagnostic.S1135.severity = none
 # S1144: неиспользуемые private члены — ложные срабатывания на EF shadow props
 dotnet_diagnostic.S1144.severity = none
 
+# CA1861: постоянные массивы в аргументах - EF Core генерируют такой код в миграциях
+dotnet_diagnostic.CA1861.severity = none
+
 # Правила строже, чем по умолчанию:
 dotnet_diagnostic.S1125.severity = error  # Redundant Boolean literal
 dotnet_diagnostic.S6673.severity = error  # Serilog template placeholder order
