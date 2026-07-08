@@ -9,6 +9,9 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
 
+        <!-- Игнорируем предупреждения об уязвимостях в пакетах -->
+        <NoWarn>$(NoWarn);NU1903</NoWarn>
+
         <!-- Включаем стилевые правила в build -->
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <AnalysisLevel>latest</AnalysisLevel>
