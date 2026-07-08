@@ -26,4 +26,3 @@ public sealed class InMemoryLocationRepository : ILocationRepository
         return Task.FromResult(isTaken);
     }
 }
-
