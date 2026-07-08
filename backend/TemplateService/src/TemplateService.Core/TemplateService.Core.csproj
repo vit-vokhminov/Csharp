@@ -5,4 +5,9 @@
         <ProjectReference Include="..\TemplateService.Domain\TemplateService.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="FluentValidation" />
+        <ProjectReference Include="FluentValidation.DependencyInjectionExtensions" />
+    </ItemGroup>
+
 </Project>

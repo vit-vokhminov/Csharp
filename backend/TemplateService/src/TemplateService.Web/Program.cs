@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using TemplateService.Core;
 using TemplateService.Infrastructure.Postgres;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,8 @@ builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 
 builder.Configuration.AddEnvironmentVariables();
+
+builder.Services.AddCoreServices();
 
 builder.Services.AddDbContext<TemplateServiceDbContext>((serviceProvider, options) =>
 {
