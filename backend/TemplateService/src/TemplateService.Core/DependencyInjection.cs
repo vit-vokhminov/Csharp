@@ -25,9 +25,6 @@ public static class CoreServicesExtension
         // Репозиторий регистрируется в инфраструктурном слое
         // ILocationRepository регистрируется в AddInfrastructureServices
 
-        // Регистрация заглушки репозитория (реализация будет добавлена в инфраструктурном слое)
-        // services.AddScoped<ILocationRepository, InMemoryLocationRepository>();
-
         return services;
     }
 }

@@ -14,7 +14,7 @@ public sealed partial class DapperLocationRepository : ILocationRepository
 {
     private readonly IDbConnection _dbConnection;
     private readonly ILogger<DapperLocationRepository> _logger;
-
+// В конструкторе создаётся одно соединение _dbConnection на весь срок жизни репозитория, но оно не освобождается (нет Dispose). Лучше создавать и освобождать соединение внутри каждого метода через using var connection = dataSource.CreateConnection(), чтобы избежать потенциальной утечки.
     public DapperLocationRepository(
         NpgsqlDataSource dataSource,
         ILogger<DapperLocationRepository> logger)
@@ -42,7 +42,8 @@ RETURNING id;
                     Address = location.Address.Value,
                     CreatedAt = location.CreatedAt,
                     UpdatedAt = location.UpdatedAt
-                });
+                },
+                cancellationToken: cancellationToken));
 
             return location;
         }
@@ -65,8 +66,8 @@ SELECT EXISTS (
 
         return await _dbConnection.ExecuteScalarAsync<bool>(
             sql,
-            new { Name = name }
-            );
+            new { Name = name },
+            cancellationToken: cancellationToken));
     }
 
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]
