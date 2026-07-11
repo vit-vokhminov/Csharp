@@ -1,14 +1,13 @@
-using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using TemplateService.Core;
 using TemplateService.Infrastructure.Postgres;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Нативный OpenAPI .NET 9/10
+// Нативный OpenAPI .NET 9/10 
 builder.Services.AddOpenApi();
 
-// Для тестового контроллера
+// Для тестового контроллера 
 builder.Services.AddControllers();
 
 builder.Services.AddHealthChecks();
@@ -17,33 +16,33 @@ builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddCoreServices();
 
-builder.Services.AddDbContext<TemplateServiceDbContext>((serviceProvider, options) =>
+// Чтение типа репозитория из конфигурации (по умолчанию EfCore)
+
+var repositoryTypeString = builder.Configuration["LocationRepositoryType"] ?? "EfCore";
+if (!Enum.TryParse<LocationRepositoryType>(repositoryTypeString, ignoreCase: true, out var repositoryType))
 {
-    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
-    string? connectionString = configuration.GetConnectionString("postgres");
+    repositoryType = LocationRepositoryType.EfCore;
+}
 
-    if (string.IsNullOrWhiteSpace(connectionString))
-    {
-        throw new InvalidOperationException("Connection string 'postgres' is not configured.");
-    }
-
-    options.UseNpgsql(connectionString);
-});
+// Регистрация инфраструктурных сервисов с выбранным типом репозитория
+builder.Services.AddInfrastructureServices(builder.Configuration, repositoryType);
 
 WebApplication app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
 
-// MVC контроллеры
+// MVC контроллеры 
 app.MapControllers();
 
 app.MapHealthChecks("/health");
 
 // Если среда не prod
+
 if (!app.Environment.IsProduction())
 {
-    app.MapOpenApi();              // генерируем спецификацию
-    app.MapScalarApiReference();   // маппим Scalar эндпоинты
+    app.MapOpenApi();   //	генерируем спецификацию
+    app.MapScalarApiReference();	// маппим Scalar эндпоинты
+
 }
 
 await app.RunAsync();
