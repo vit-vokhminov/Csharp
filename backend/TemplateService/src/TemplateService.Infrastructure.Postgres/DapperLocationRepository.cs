@@ -12,14 +12,16 @@ namespace TemplateService.Infrastructure.Postgres;
 /// </summary>
 public sealed partial class DapperLocationRepository : ILocationRepository
 {
-    private readonly IDbConnection _dbConnection;
+
+    private readonly NpgsqlDataSource _dataSource;
+
     private readonly ILogger<DapperLocationRepository> _logger;
-// В конструкторе создаётся одно соединение _dbConnection на весь срок жизни репозитория, но оно не освобождается (нет Dispose). Лучше создавать и освобождать соединение внутри каждого метода через using var connection = dataSource.CreateConnection(), чтобы избежать потенциальной утечки.
+
     public DapperLocationRepository(
         NpgsqlDataSource dataSource,
         ILogger<DapperLocationRepository> logger)
     {
-        _dbConnection = dataSource.CreateConnection();
+        _dataSource = dataSource;
         _logger = logger;
     }
 
@@ -33,7 +35,8 @@ RETURNING id;
 
         try
         {
-            await _dbConnection.ExecuteAsync(
+            using var connection = _dataSource.CreateConnection();
+            await connection.ExecuteAsync(new CommandDefinition(
                 sql,
                 new
                 {
@@ -46,6 +49,7 @@ RETURNING id;
                 cancellationToken: cancellationToken));
 
             return location;
+
         }
         catch (Exception ex)
         {
@@ -58,18 +62,20 @@ RETURNING id;
     {
         const string sql = """
 SELECT EXISTS (
-    SELECT 1
-    FROM directory.locations
-    WHERE name = @Name
+SELECT 1
+FROM directory.locations WHERE name = @Name
 );
 """;
 
-        return await _dbConnection.ExecuteScalarAsync<bool>(
+        using var connection = _dataSource.CreateConnection();
+        return await connection.ExecuteScalarAsync<bool>(new CommandDefinition(
             sql,
-            new { Name = name },
-            cancellationToken: cancellationToken));
+        new { Name = name },
+        cancellationToken: cancellationToken));
     }
 
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]
+
     private partial void LogSaveError(Exception ex, string name);
+
 }
