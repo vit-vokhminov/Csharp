@@ -22,8 +22,8 @@ public static class CoreServicesExtension
         // Регистрация Use Cases
         services.AddScoped<CreateLocationUseCase>();
 
-        // Регистрация заглушки репозитория (реализация будет добавлена в инфраструктурном слое)
-        services.AddScoped<ILocationRepository, InMemoryLocationRepository>();
+        // Репозиторий регистрируется в инфраструктурном слое
+        // ILocationRepository регистрируется в AddInfrastructureServices
 
         return services;
     }
