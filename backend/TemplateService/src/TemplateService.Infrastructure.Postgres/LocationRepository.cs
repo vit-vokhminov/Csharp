@@ -40,7 +40,7 @@ public sealed partial class LocationRepository : ILocationRepository
     public async Task<bool> IsNameTakenAsync(string name, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Locations
-        .AnyAsync(l => l.Name.Value == name, cancellationToken);
+        .AnyAsync(l => EF.Property<string>(l, "Name") == name, cancellationToken);
     }
 
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]
