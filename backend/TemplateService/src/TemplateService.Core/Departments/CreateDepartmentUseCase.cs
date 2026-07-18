@@ -1,3 +1,4 @@
+using TemplateService.Contracts.Departments;
 using TemplateService.Core.DepartmentLocations;
 using TemplateService.Core.Locations;
 using TemplateService.Domain.DepartmentLocations;
@@ -162,14 +163,9 @@ public sealed class LocationNotFoundException : Exception
 /// </summary>
 public sealed class SlugAlreadyTakenException : Exception
 {
-    public string Slug { get; }
+    public string? Slug { get; }
 
     public SlugAlreadyTakenException()
-    {
-    }
-
-    public SlugAlreadyTakenException(string message)
-        : base(message)
     {
     }
 
@@ -184,16 +180,3 @@ public sealed class SlugAlreadyTakenException : Exception
         Slug = slug;
     }
 }
-
-/// <summary>
-/// Запрос на создание подразделения.
-/// </summary>
-/// <param name="Name">Отображаемое название подразделения.</param>
-/// <param name="Slug">Cтa6ильный код для URL и интеграций.</param>
-/// <param name="ParentId">Идeнтификaтop родительского подразделения. Для корневого - null.</param>
-/// <param пате="LocationIds">Идентификаторы локаций, где работает подразделение.</param>
-public sealed record CreateDepartmentRequest(
-    string Name,
-    string Slug,
-    Guid? ParentId,
-    IReadOnlyList<Guid> LocationIds);

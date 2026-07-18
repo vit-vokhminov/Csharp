@@ -4,7 +4,7 @@ using TemplateService.Contracts.Departments;
 using TemplateService.Core.Departments;
 using TemplateService.Domain.Departments;
 using ContractsCreateRequest = TemplateService.Contracts.Departments.CreateDepartmentRequest;
-using CoreCreateRequest = TemplateService.Core.Departments.CreateDepartmentRequest;
+using CoreCreateRequest = TemplateService.Contracts.Departments.CreateDepartmentRequest;
 
 namespace TemplateService.Web.Controllers;
 
@@ -29,11 +29,13 @@ public class DepartmentsController : ControllerBase
     {
         try
         {
-            var createRequest = new CoreCreateRequest(
-                request.Name,
-                request.Slug,
-                request.ParentId,
-                request.LocationIds ?? Array.Empty<Guid>());
+            var createRequest = new CoreCreateRequest
+            {
+                Name = request.Name,
+                Slug = request.Slug,
+                ParentId = request.ParentId,
+                LocationIds = request.LocationIds ?? Array.Empty<Guid>(),
+            };
 
             var department = await _createDepartmentUseCase.ExecuteAsync(createRequest, cancellationToken);
 
