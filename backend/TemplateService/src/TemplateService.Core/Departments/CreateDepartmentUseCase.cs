@@ -195,5 +195,5 @@ public sealed class SlugAlreadyTakenException : Exception
 public sealed record CreateDepartmentRequest(
     string Name,
     string Slug,
-    Guid? Parentld,
-    IReadOnlyList<Guid> Locationlds);
+    Guid? ParentId,
+    IReadOnlyList<Guid> LocationIds);
