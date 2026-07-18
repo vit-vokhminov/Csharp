@@ -98,6 +98,9 @@ public sealed class CreateDepartmentUseCase
             await _departmentLocationRepository.AddRangeAsync(departmentLocations, cancellationToken);
         }
 
+        // Атомарное сохранение: подразделение и все связи сохраняются одним коммитом
+        await _departmentRepository.SaveChangeAsync(cancellationToken);
+
         return newDepartment;
     }
 }

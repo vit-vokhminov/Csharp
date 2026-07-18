@@ -26,14 +26,13 @@ public sealed partial class DepartmentLocationRepository : IDepartmentLocationRe
         try
         {
             await _dbContext.DepartmentLocations.AddAsync(departmentLocation, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
             return departmentLocation;
         }
         catch (Exception ex)
         {
             LogSaveError(ex, departmentLocation.DepartmentId, departmentLocation.LocationId);
             throw new InfrastructureException(
-                $"Не удалось сохранить связь подразделения {departmentLocation.DepartmentId} с локацией {departmentLocation.LocationId}",
+                $"Не удалось добавить связь подразделения {departmentLocation.DepartmentId} с локацией {departmentLocation.LocationId}",
                 ex);
         }
     }
@@ -48,14 +47,18 @@ public sealed partial class DepartmentLocationRepository : IDepartmentLocationRe
         try
         {
             await _dbContext.DepartmentLocations.AddRangeAsync(departmentLocations, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
             return departmentLocations;
         }
         catch (Exception ex)
         {
             LogSaveRangeError(ex, departmentLocations.Count);
-            throw new InfrastructureException($"Не удалось сохранить связи подразделений с локациями", ex);
+            throw new InfrastructureException($"Не удалось добавить связи подразделений с локациями", ex);
         }
+    }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения связи подразделения с локацией DepartmentId={DepartmentId}, LocationId={LocationId}")]

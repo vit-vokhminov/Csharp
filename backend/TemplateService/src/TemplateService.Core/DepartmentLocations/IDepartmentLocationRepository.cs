@@ -26,4 +26,11 @@ public interface IDepartmentLocationRepository
     Task<IReadOnlyList<DepartmentLocation>> AddRangeAsync(
         IReadOnlyList<DepartmentLocation> departmentLocations,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Сохраняет все изменения в БД.
+    /// </summary>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Задача выполнения.</returns>
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

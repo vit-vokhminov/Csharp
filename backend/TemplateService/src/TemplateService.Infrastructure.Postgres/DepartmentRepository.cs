@@ -26,7 +26,6 @@ public sealed partial class DepartmentRepository : IDepartmentRepository
         try
         {
             await _dbContext.Departments.AddAsync(department, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
             return department;
         }
         catch (Exception ex)
@@ -34,6 +33,11 @@ public sealed partial class DepartmentRepository : IDepartmentRepository
             LogSaveError(ex, department.Name.Value);
             throw new InfrastructureException($"Не удалось сохранить подразделение '{department.Name.Value}'", ex);
         }
+    }
+
+    public async Task SaveChangeAsync(CancellationToken cancellationToken = default)
+    {
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<bool> ExistsByIdAsync(Guid id, CancellationToken cancellationToken = default)

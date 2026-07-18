@@ -38,4 +38,11 @@ public interface IDepartmentRepository
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>True, если slug занят; иначе false.</returns>
     Task<bool> IsSlugTakenAsync(string slug, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Сохраняет все изменения в БД.
+    /// </summary>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Задача выполнения.</returns>
+    Task SaveChangeAsync(CancellationToken cancellationToken = default);
 }
