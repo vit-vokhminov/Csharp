@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TemplateService.Core.Locations;
@@ -10,13 +11,12 @@ namespace TemplateService.Infrastructure.Postgres;
 /// </summary>
 public sealed partial class LocationRepository : ILocationRepository
 {
-
     private readonly TemplateServiceDbContext _dbContext;
     private readonly ILogger<LocationRepository> _logger;
 
     public LocationRepository(
-    TemplateServiceDbContext dbContext,
-    ILogger<LocationRepository> logger)
+        TemplateServiceDbContext dbContext,
+        ILogger<LocationRepository> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
@@ -39,8 +39,15 @@ public sealed partial class LocationRepository : ILocationRepository
 
     public async Task<bool> IsNameTakenAsync(string name, CancellationToken cancellationToken = default)
     {
+        // Сравниваем по внутреннему значению, а не по самому ValueObject
         return await _dbContext.Locations
-        .AnyAsync(l => EF.Property<string>(l, "Name") == name, cancellationToken);
+            .AnyAsync(l => l.Name.Value == name, cancellationToken);
+    }
+
+    public async Task<Location?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        // FindAsync принимает параметры через params, поэтому просто передаём id
+        return await _dbContext.Locations.FindAsync([id], cancellationToken);
     }
 
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]

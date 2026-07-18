@@ -14,7 +14,6 @@ public sealed partial class DapperLocationRepository : ILocationRepository
 {
 
     private readonly NpgsqlDataSource _dataSource;
-
     private readonly ILogger<DapperLocationRepository> _logger;
 
     public DapperLocationRepository(
@@ -72,6 +71,27 @@ FROM directory.locations WHERE name = @Name
             sql,
         new { Name = name },
         cancellationToken: cancellationToken));
+    }
+
+    public async Task<Location?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            SELECT id, name, address, createdat, updatedat
+            FROM directory.locations
+            WHERE id = @Id;
+        """;
+
+        using var connection = _dataSource.CreateConnection();
+        var row = await connection.QueryFirstOrDefaultAsync<(Guid Id, string Name, string Address, DateTime CreatedAt, DateTime UpdatedAt)>(
+            new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
+
+        if (row == default)
+        {
+            return null;
+        }
+
+        var location = Location.Create(row.Id, row.Name, row.Address, row.CreatedAt);
+        return location;
     }
 
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]

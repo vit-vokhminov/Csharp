@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection; // исправлено Dependencylnjection → DependencyInjection
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using TemplateService.Core.DepartmentLocations;
+using TemplateService.Core.Departments;
 using TemplateService.Core.Locations;
 
 namespace TemplateService.Infrastructure.Postgres;
@@ -64,6 +66,10 @@ public static class InfrastructureServices
             default:
                 throw new ArgumentOutOfRangeException(nameof(repositoryType), repositoryType, null);
         }
+
+        // Ркгистрация репозиториев подразделений и связей
+        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+        services.AddScoped<IDepartmentLocationRepository, DepartmentLocationRepository>();
 
         return services;
     }

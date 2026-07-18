@@ -19,4 +19,9 @@ public sealed class CreateDepartmentRequest
     /// Идентификатор родительского подразделения. Для корневого - null.
     /// </summary>
     public Guid? ParentId { get; init; }
+
+    /// <summary>
+    /// Идентификаторы локаций, где работает подразделение.
+    /// </summary>
+    public IReadOnlyList<Guid> LocationIds { get; init; } = Array.Empty<Guid>();
 }

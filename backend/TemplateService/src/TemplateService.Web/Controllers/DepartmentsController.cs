@@ -1,5 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TemplateService.Contracts.Departments;
+using TemplateService.Core.Departments;
+using TemplateService.Domain.Departments;
+using ContractsCreateRequest = TemplateService.Contracts.Departments.CreateDepartmentRequest;
+using CoreCreateRequest = TemplateService.Core.Departments.CreateDepartmentRequest;
 
 namespace TemplateService.Web.Controllers;
 
@@ -7,38 +12,72 @@ namespace TemplateService.Web.Controllers;
 [Route("api/[controller]")]
 public class DepartmentsController : ControllerBase
 {
+    private readonly CreateDepartmentUseCase _createDepartmentUseCase;
+
+    public DepartmentsController(CreateDepartmentUseCase createDepartmentUseCase)
+    {
+        _createDepartmentUseCase = createDepartmentUseCase;
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(DepartmentResponse), StatusCodes.Status201Created)]
-    public IActionResult Create([FromBody] CreateDepartmentRequest request)
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Create(
+        [FromBody] ContractsCreateRequest request,
+        CancellationToken cancellationToken = default)
     {
-        var response = new DepartmentResponse
+        try
         {
-            Id = Guid.NewGuid(),
-            Name = request.Name,
-            Slug = request.Slug,
-            Path = request.ParentId.HasValue ? $"parent/{request.Slug}" : request.Slug,
-            ParentId = request.ParentId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-        };
+            var createRequest = new CoreCreateRequest(
+                request.Name,
+                request.Slug,
+                request.ParentId,
+                request.LocationIds ?? Array.Empty<Guid>());
 
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = response.Id },
-            response);
+            var department = await _createDepartmentUseCase.ExecuteAsync(createRequest, cancellationToken);
+
+            var response = new DepartmentResponse
+            {
+                Id = department.Id,
+                Name = department.Name.Value,
+                Slug = department.Slug.Value,
+                Path = department.Path.Value,
+                ParentId = department.ParentId,
+                CreatedAt = department.CreatedAt,
+                UpdatedAt = department.UpdatedAt,
+            };
+
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = response.Id },
+                response);
+        }
+        catch (DepartmentNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (LocationNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (SlugAlreadyTakenException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(DepartmentResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken = default)
     {
         return NotFound();
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(DepartmentResponse[]), StatusCodes.Status200OK)]
-    public IActionResult GetList()
+    public async Task<IActionResult> GetList(CancellationToken cancellationToken = default)
     {
         return Ok(Array.Empty<DepartmentResponse>());
     }
@@ -60,7 +99,6 @@ public class DepartmentsController : ControllerBase
         };
 
         return Ok(response);
-
     }
 
     [HttpDelete("{id:guid}")]
