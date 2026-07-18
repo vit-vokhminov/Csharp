@@ -34,10 +34,12 @@ Root-подразделение получает path, равный собств
 
 
 backend/TemplateService/src/TemplateService.Core/Departments/CreateDepartmentUseCase.cs
-Сейчас _departmentRepository.AddAsync внутри себя вызывает SaveChangesAsync, а затем _departmentLocationRepository.AddRangeAsync делает то же самое. Это два независимых коммита: если сохранение связей упадёт, подразделение уже останется в БД. Задача требует атомарного сохранения — всё должно записаться как одна операция. Лучше убрать SaveChanges из репозиториев и выполнить один SaveChangesAsync после добавления подразделения и всех связей (например, через единый контекст/транзакцию).
-
-backend\TemplateService\src\TemplateService.Infrastructure.Postgres\LocationRepository.cs
-Этот файл, судя по содержимому, отладочный лог предыдущей ошибки. Для чистоты репозитория можно его удалить (опционально).
+Цикл с GetByIdAsync на каждую локацию даёт N+1 запросов к БД. Для небольшого числа локаций это не критично, но по желанию можно добавить в ILocationRepository метод GetByIdsAsync(IReadOnlyList<Guid> ids, ...), который сделает один запрос WHERE id = ANY(＠ids).
 
 
-Атомарное сохранение подразделения и его первичных связей не выполнено: репозитории сохраняют данные через отдельные SaveChanges, что может привести к частичному состоянию БД. Нужно гарантировать одну транзакцию для всего создания.
+backend/TemplateService/src/TemplateService.Web/Controllers/DepartmentsController.cs
+using TemplateService.Contracts.Departments;
+using TemplateService.Core.Departments;
+using TemplateService.Domain.Departments;
+using ContractsCreateRequest = TemplateService.Contracts.Departments.CreateDepartmentRequest;
+ContractsCreateRequest и CoreCreateRequest — псевдонимы одного и того же типа TemplateService.Contracts.Departments.CreateDepartmentRequest. Создание нового экземпляра CoreCreateRequest и копирование полей — лишняя операция, можно передавать request напрямую в use case. По желанию можно убрать псевдонимы и упростить код.
