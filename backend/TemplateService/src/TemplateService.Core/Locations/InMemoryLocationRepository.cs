@@ -33,4 +33,18 @@ public sealed class InMemoryLocationRepository : ILocationRepository
         _locations.TryGetValue(id, out var location);
         return Task.FromResult<Location?>(location);
     }
+
+    public Task<IReadOnlyList<Location>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        var locations = new List<Location>(ids.Count);
+        foreach (var id in ids)
+        {
+            if (_locations.TryGetValue(id, out var location))
+            {
+                locations.Add(location);
+            }
+        }
+
+        return Task.FromResult<IReadOnlyList<Location>>(locations);
+    }
 }

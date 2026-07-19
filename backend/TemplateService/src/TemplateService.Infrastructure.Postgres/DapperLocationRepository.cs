@@ -60,11 +60,12 @@ RETURNING id;
     public async Task<bool> IsNameTakenAsync(string name, CancellationToken cancellationToken = default)
     {
         const string sql = """
-SELECT EXISTS (
-SELECT 1
-FROM directory.locations WHERE name = @Name
-);
-""";
+            SELECT EXISTS (
+                SELECT 1
+                FROM directory.locations
+                WHERE name = @Name
+            );
+        """;
 
         using var connection = _dataSource.CreateConnection();
         return await connection.ExecuteScalarAsync<bool>(new CommandDefinition(
@@ -76,7 +77,12 @@ FROM directory.locations WHERE name = @Name
     public async Task<Location?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         const string sql = """
-            SELECT id, name, address, createdat, updatedat
+            SELECT
+                id,
+                name,
+                address,
+                createdat AS CreatedAt,
+                updatedat AS UpdatedAt
             FROM directory.locations
             WHERE id = @Id;
         """;
@@ -92,6 +98,36 @@ FROM directory.locations WHERE name = @Name
 
         var location = Location.Create(row.Id, row.Name, row.Address, row.CreatedAt);
         return location;
+    }
+
+    public async Task<IReadOnlyList<Location>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+        {
+            return Array.Empty<Location>();
+        }
+
+        const string sql = """
+        SELECT
+            id,
+            name,
+            address,
+            createdat AS CreatedAt,
+            updatedat AS UpdatedAt
+        FROM directory.locations
+        WHERE id = ANY(@Ids);
+""";
+
+        using var connection = _dataSource.CreateConnection();
+        var rows = await connection.QueryAsync<(Guid Id, string Name, string Address, DateTime CreatedAt, DateTime UpdatedAt)>(new CommandDefinition(sql, new { Ids = ids.ToArray() }, cancellationToken: cancellationToken));
+
+        var locations = new List<Location>();
+        foreach (var row in rows)
+        {
+            var location = Location.Create(row.Id, row.Name, row.Address, row.CreatedAt);
+            locations.Add(location);
+        }
+        return locations;
     }
 
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]

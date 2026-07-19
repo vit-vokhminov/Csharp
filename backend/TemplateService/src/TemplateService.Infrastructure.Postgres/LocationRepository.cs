@@ -50,6 +50,20 @@ public sealed partial class LocationRepository : ILocationRepository
         return await _dbContext.Locations.FindAsync([id], cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Location>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+        {
+            return Array.Empty<Location>();
+        }
+
+        var locations = await _dbContext.Locations
+            .Where(l => ids.Contains(l.Id))
+            .ToListAsync(cancellationToken);
+
+        return locations;
+    }
+
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]
     private partial void LogSaveError(Exception ex, string name);
 }

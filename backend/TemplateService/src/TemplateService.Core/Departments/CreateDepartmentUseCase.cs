@@ -55,20 +55,27 @@ public sealed class CreateDepartmentUseCase
         }
 
         // Проверка локаций: все LocationIds должны существовать
-        var locations = new List<Location>();
+        IReadOnlyList<Location> locations;
         if (request.LocationIds.Count > 0)
         {
-            foreach (var locationId in request.LocationIds)
-            {
-                var location = await _locationRepository.GetByIdAsync(locationId, cancellationToken);
-                if (location is null)
-                {
-                    throw new LocationNotFoundException(locationId);
-                }
+            locations = await _locationRepository.GetByIdsAsync(request.LocationIds, cancellationToken);
 
-                locations.Add(location);
+            if (locations.Count != request.LocationIds.Count)
+            {
+                var foundIds = new HashSet<Guid>(locations.Select(l => l.Id));
+                var missingLocationId = request.LocationIds.FirstOrDefault(id => !foundIds.Contains(id));
+
+                if (missingLocationId != Guid.Empty)
+                {
+                    throw new LocationNotFoundException(missingLocationId);
+                }
             }
         }
+        else
+        {
+            locations = Array.Empty<Location>();
+        }
+
 
         // Создание подразделения через доменную фабрику
         var now = DateTime.UtcNow;

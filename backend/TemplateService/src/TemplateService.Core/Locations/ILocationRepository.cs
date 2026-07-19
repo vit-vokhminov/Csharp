@@ -30,4 +30,12 @@ public interface ILocationRepository
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Локация или null, если не найдена.</returns>
     Task<Location?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Находит локацию по списку идентификаторов.
+    /// </summary>
+    /// <param name="ids">Список идентификаторов локаций.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Список найденных локаций.</returns>
+    Task<IReadOnlyList<Location>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default);
 }
