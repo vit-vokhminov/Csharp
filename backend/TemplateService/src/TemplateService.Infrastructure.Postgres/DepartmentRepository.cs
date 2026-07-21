@@ -54,9 +54,9 @@ public sealed partial class DepartmentRepository : IDepartmentRepository
 
     public async Task<bool> IsSlugTakenAsync(string slug, CancellationToken cancellationToken = default)
     {
-        // Сравниваем по внутреннему значению, а не по самому ValueObject
+        var slugValueObject = Domain.Primitives.Name.Create(slug);
         return await _dbContext.Departments
-            .AnyAsync(d => d.Slug.Value == slug, cancellationToken);
+            .AnyAsync(d => d.Name == slugValueObject, cancellationToken);
     }
 
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения подразделения с именем {Name}")]

@@ -39,9 +39,9 @@ public sealed partial class LocationRepository : ILocationRepository
 
     public async Task<bool> IsNameTakenAsync(string name, CancellationToken cancellationToken = default)
     {
-        // Сравниваем по внутреннему значению, а не по самому ValueObject
+        var nameValueObject = Domain.Primitives.Name.Create(name);
         return await _dbContext.Locations
-            .AnyAsync(l => l.Name.Value == name, cancellationToken);
+            .AnyAsync(l => l.Name == nameValueObject, cancellationToken);
     }
 
     public async Task<Location?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
