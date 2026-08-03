@@ -14,7 +14,6 @@ public sealed partial class DapperLocationRepository : ILocationRepository
 {
 
     private readonly NpgsqlDataSource _dataSource;
-
     private readonly ILogger<DapperLocationRepository> _logger;
 
     public DapperLocationRepository(
@@ -61,11 +60,12 @@ RETURNING id;
     public async Task<bool> IsNameTakenAsync(string name, CancellationToken cancellationToken = default)
     {
         const string sql = """
-SELECT EXISTS (
-SELECT 1
-FROM directory.locations WHERE name = @Name
-);
-""";
+            SELECT EXISTS (
+                SELECT 1
+                FROM directory.locations
+                WHERE name = @Name
+            );
+        """;
 
         using var connection = _dataSource.CreateConnection();
         return await connection.ExecuteScalarAsync<bool>(new CommandDefinition(
@@ -74,8 +74,96 @@ FROM directory.locations WHERE name = @Name
         cancellationToken: cancellationToken));
     }
 
-    [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]
+    public async Task<Location?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            SELECT
+                id,
+                name,
+                address,
+                createdat AS CreatedAt,
+                updatedat AS UpdatedAt
+            FROM directory.locations
+            WHERE id = @Id;
+        """;
 
+        using var connection = _dataSource.CreateConnection();
+        var row = await connection.QueryFirstOrDefaultAsync<(Guid Id, string Name, string Address, DateTime CreatedAt, DateTime UpdatedAt)>(
+            new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
+
+        if (row == default)
+        {
+            return null;
+        }
+
+        var location = Location.Create(row.Id, row.Name, row.Address, row.CreatedAt);
+        return location;
+    }
+
+    public async Task<IReadOnlyList<Location>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0)
+        {
+            return Array.Empty<Location>();
+        }
+
+        const string sql = """
+        SELECT
+            id,
+            name,
+            address,
+            createdat AS CreatedAt,
+            updatedat AS UpdatedAt
+        FROM directory.locations
+        WHERE id = ANY(@Ids);
+""";
+
+        using var connection = _dataSource.CreateConnection();
+        var rows = await connection.QueryAsync<(Guid Id, string Name, string Address, DateTime CreatedAt, DateTime UpdatedAt)>(new CommandDefinition(sql, new { Ids = ids.ToArray() }, cancellationToken: cancellationToken));
+
+        var locations = new List<Location>();
+        foreach (var row in rows)
+        {
+            var location = Location.Create(row.Id, row.Name, row.Address, row.CreatedAt);
+            locations.Add(location);
+        }
+        return locations;
+    }
+
+    public async Task UpdateAsync(Location location, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+UPDATE directory.locations 
+SET name = @Name,
+    address = @Address, 
+    updatedat = @UpdatedAt 
+WHERE id = @id;
+""";
+
+        try
+        {
+            using var connection = _dataSource.CreateConnection();
+            await connection.ExecuteAsync(new CommandDefinition(
+                sql,
+                new
+                {
+                    location.Id,
+                    Name = location.Name.Value,
+                    Address = location.Address.Value,
+                    UpdatedAt = location.UpdatedAt
+                },
+            cancellationToken: cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            LogUpdateError(_logger, ex, location.Name.Value);
+            throw new InfrastructureException($"He удалось обновить локацию '{location.Name.Value}'", ex);
+        }
+    }
+
+    [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]
     private partial void LogSaveError(Exception ex, string name);
 
+    [LoggerMessage(LogLevel.Error, "Ошибка обновления локации с именем {Name}")]
+    private static partial void LogUpdateError(ILogger<DapperLocationRepository> logger, Exception ex, string name);
 }

@@ -14,6 +14,7 @@ public sealed class InMemoryLocationRepository : ILocationRepository
 
     public Task<Location> AddAsync(Location location, CancellationToken cancellationToken = default)
     {
+        // На случай, если локация с таким ID уже есть — перезаписываем (или можно выбросить исключение, если нужна строгая семантика)
         _locations[location.Id] = location;
         _nameIndex[location.Name.Value] = location.Id;
 
@@ -24,5 +25,33 @@ public sealed class InMemoryLocationRepository : ILocationRepository
     {
         var isTaken = _nameIndex.ContainsKey(name);
         return Task.FromResult(isTaken);
+    }
+
+    // Исправленное имя метода: GetByIdAsync вместо GetBuIdAsync
+    public Task<Location?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        _locations.TryGetValue(id, out var location);
+        return Task.FromResult<Location?>(location);
+    }
+
+    public Task<IReadOnlyList<Location>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        var locations = new List<Location>(ids.Count);
+        foreach (var id in ids)
+        {
+            if (_locations.TryGetValue(id, out var location))
+            {
+                locations.Add(location);
+            }
+        }
+
+        return Task.FromResult<IReadOnlyList<Location>>(locations);
+    }
+
+    public Task UpdateAsync(Location location, CancellationToken cancellationToken = default)
+    {
+        _locations[location.Id] = location;
+        _nameIndex[location.Name.Value] = location.Id;
+        return Task.CompletedTask;
     }
 }

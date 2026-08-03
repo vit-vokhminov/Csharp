@@ -1,0 +1,142 @@
+backend\TemplateService\src\TemplateService.Infrastructure.Postgres\LocationRepository.cs
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using TemplateService.Core.Locations;
+using TemplateService.Domain.Locations;
+
+namespace TemplateService.Infrastructure.Postgres;
+
+/// <summary>
+/// Реализация репозитория локаций через EF Core.
+/// </summary>
+public sealed partial class LocationRepository : ILocationRepository
+{
+
+    private readonly TemplateServiceDbContext _dbContext;
+    private readonly ILogger<LocationRepository> _logger;
+
+    public LocationRepository(
+    TemplateServiceDbContext dbContext,
+    ILogger<LocationRepository> logger)
+    {
+        _dbContext = dbContext;
+        _logger = logger;
+    }
+
+    public async Task<Location> AddAsync(Location location, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _dbContext.Locations.AddAsync(location, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return location;
+        }
+        catch (Exception ex)
+        {
+            LogSaveError(ex, location.Name.Value);
+            throw new InfrastructureException($"Не удалось сохранить локацию '{location.Name.Value}'", ex);
+        }
+    }
+
+    public async Task<bool> IsNameTakenAsync(string name, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Locations
+        .AnyAsync(l => l.Name.Value == name, cancellationToken);
+    }
+
+    [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]
+    private partial void LogSaveError(Exception ex, string name);
+}
+
+
+При вызове POST /api/Locations, в сервисе backend\TemplateService\src\TemplateService.Infrastructure.Postgres\LocationRepository.cs
+в методе IsNameTakenAsync возникает ошибка:
+System.InvalidOperationException: "The LINQ expression 'DbSet<Location>()
+    .Any(l => l.Name.Value == @name)' could not be translated. Either rewrite the query in a form that can be translated, or switch to client evaluation explicitly by inserting a call to 'AsEnumerable', 'AsAsyncEnumerable', 'ToList', or 'ToListAsync'. See https://go.microsoft.com/fwlink/?linkid=2101038 for more information."
+
+Параметры запроса:
+{
+  "name": "test",
+  "address": {
+    "street": "test",
+    "city": "test",
+    "zipCode": null,
+    "country": "test"
+  }
+}
+
+
+В чём причина и как исправить?
+
+При вызове POST /api/Locations, в сервисе backend\TemplateService\src\TemplateService.Infrastructure.Postgres\LocationRepository.cs
+в методе IsNameTakenAsync возникает ошибка:
+public async Task<bool> IsNameTakenAsync(string name, CancellationToken cancellationToken = default)
+{
+    return await _dbContext.Locations
+    .AnyAsync(l => EF.Property<string>(l, "Name") == name, cancellationToken);
+}
+Ошибка:
+System.InvalidCastException: "Invalid cast from 'System.String' to 'TemplateService.Domain.Primitives.Name'."
+
+Параметры запроса:
+{
+  "name": "test",
+  "address": {
+    "street": "test",
+    "city": "test",
+    "zipCode": null,
+    "country": "test"
+  }
+}
+
+Полная ошибка:
+System.InvalidCastException: Invalid cast from 'System.String' to 'TemplateService.Domain.Primitives.Name'.
+   at System.Convert.DefaultToType(IConvertible value, Type targetType, IFormatProvider provider)
+   at Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter`2.Sanitize[T](Object value)
+   at Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter`2.<>c__DisplayClass2_0`2.<SanitizeConverter>b__1(Object v)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalTypeMapping.CreateParameter(DbCommand command, String name, Object value, Nullable`1 nullable, ParameterDirection direction)
+   at Microsoft.EntityFrameworkCore.Storage.Internal.TypeMappedRelationalParameter.AddDbParameter(DbCommand command, Object value)
+   at Microsoft.EntityFrameworkCore.Storage.Internal.RelationalParameterBase.AddDbParameter(DbCommand command, IReadOnlyDictionary`2 parameterValues)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.CreateDbCommand(RelationalCommandParameterObject parameterObject, Guid commandId, DbCommandMethod commandMethod)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.NpgsqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at TemplateService.Infrastructure.Postgres.LocationRepository.IsNameTakenAsync(String name, CancellationToken cancellationToken) in C:\1_MyWork\1_sachkov\backend\TemplateService\src\TemplateService.Infrastructure.Postgres\LocationRepository.cs:line 42
+   at TemplateService.Core.Locations.CreateLocationUseCase.ExecuteAsync(CreateLocationDto dto, CancellationToken cancellationToken) in C:\1_MyWork\1_sachkov\backend\TemplateService\src\TemplateService.Core\Locations\CreateLocationUseCase.cs:line 36
+   at TemplateService.Web.Controllers.LocationsController.Create(CreateLocationRequest request, CancellationToken cancellationToken) in C:\1_MyWork\1_sachkov\backend\TemplateService\src\TemplateService.Web\Controllers\LocationsController.cs:line 36
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+
+HEADERS
+=======
+Accept: text/plain, application/json, text/json
+Connection: keep-alive
+Host: localhost:5214
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 YaBrowser/26.6.0.0 Safari/537.36
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: ru,en;q=0.9
+Content-Type: application/json
+Origin: http://localhost:5214
+Referer: http://localhost:5214/scalar/
+Content-Length: 125
+sec-ch-ua-platform: "Windows"
+sec-ch-ua: "Chromium";v="148", "YaBrowser";v="26.6", "Not/A)Brand";v="99", "Yowser";v="2.5"
+sec-ch-ua-mobile: ?0
+DNT: 1
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
