@@ -130,8 +130,40 @@ RETURNING id;
         return locations;
     }
 
-    [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]
+    public async Task UpdateAsync(Location location, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+UPDATE directory.locations 
+SET name = @Name,
+    address = @Address, 
+    updatedat = @UpdatedAt 
+WHERE id = @id;
+""";
 
+        try
+        {
+            using var connection = _dataSource.CreateConnection();
+            await connection.ExecuteAsync(new CommandDefinition(
+                sql,
+                new
+                {
+                    location.Id,
+                    Name = location.Name.Value,
+                    Address = location.Address.Value,
+                    UpdatedAt = location.UpdatedAt
+                },
+            cancellationToken: cancellationToken));
+        }
+        catch (Exception ex)
+        {
+            LogUpdateError(_logger, ex, location.Name.Value);
+            throw new InfrastructureException($"He удалось обновить локацию '{location.Name.Value}'", ex);
+        }
+    }
+
+    [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]
     private partial void LogSaveError(Exception ex, string name);
 
+    [LoggerMessage(LogLevel.Error, "Ошибка обновления локации с именем {Name}")]
+    private static partial void LogUpdateError(ILogger<DapperLocationRepository> logger, Exception ex, string name);
 }

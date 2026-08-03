@@ -64,6 +64,24 @@ public sealed partial class LocationRepository : ILocationRepository
         return locations;
     }
 
+    public async Task UpdateAsync(Location location, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _dbContext.Locations.Update(location);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            LogUpdateError(ex, location.Name.Value);
+            throw new InfrastructureException($"He удалось обновить локацию '{location.Name.Value}'", ex);
+
+        }
+    }
+
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения локации с именем {Name}")]
     private partial void LogSaveError(Exception ex, string name);
+
+    [LoggerMessage(LogLevel.Error, "Ошибка обновления локации с именем {Name}")]
+    private partial void LogUpdateError(Exception ex, string name);
 }

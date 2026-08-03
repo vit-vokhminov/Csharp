@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using TemplateService.Contracts.Departments;
+using TemplateService.Core.DepartmentLocations;
 using TemplateService.Core.Departments;
 using TemplateService.Core.Locations;
 
@@ -24,6 +25,10 @@ public static class CoreServicesExtension
         // Регистрация Use Cases
         services.AddScoped<CreateLocationUseCase>();
         services.AddScoped<CreateDepartmentUseCase>();
+        services.AddScoped<UpdateLocationUseCase>();
+        services.AddScoped<UpdateDepartmentUseCase>();
+        services.AddScoped<LinkLocationToDepartmentUseCase>();
+        services.AddScoped<UnlinkLocationFromDepartmentUseCase>();
 
         // Репозиторий регистрируется в инфраструктурном слое
         // ILocationRepository, IDepartmentRepository, IDepartmentLocationRepository регистрируется в AddInfrastructureServices

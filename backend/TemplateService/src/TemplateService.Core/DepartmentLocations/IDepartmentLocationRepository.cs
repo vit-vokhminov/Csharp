@@ -33,4 +33,34 @@ public interface IDepartmentLocationRepository
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Задача выполнения.</returns>
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Проверяет, существует ли связь между подразделением и локацией.
+    /// </summary>
+    /// <param name="departmentId">Идентификатор подразделения.</param>
+    /// <param name="locationId">Идентификатор локации.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>True, если связь существует; иначе false.</returns>
+    Task<bool> ExistsAsync(Guid departmentId, Guid locationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Находит связь по идентификаторам подразделения и локации.
+    /// </summary>
+    /// <param name="departmentId">Идентификатор подразделения.</param>
+    /// <param name="locationId">Идентификатор локации.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Связь или null, если не найдена.</returns>
+    Task<DepartmentLocation?> GetByDepartmentAndLocationAsync(
+        Guid departmentId,
+        Guid locationId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Удаляет связь между подразделением и локацией.
+    /// </summary>
+    /// <param name="departmentLocation">Связь для удаления.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Задача выполнения.</returns>
+    Task RemoveAsync(DepartmentLocation departmentLocation, CancellationToken cancellationToken = default);
+
 }

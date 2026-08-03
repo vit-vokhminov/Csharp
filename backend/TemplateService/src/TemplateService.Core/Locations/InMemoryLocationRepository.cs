@@ -47,4 +47,11 @@ public sealed class InMemoryLocationRepository : ILocationRepository
 
         return Task.FromResult<IReadOnlyList<Location>>(locations);
     }
+
+    public Task UpdateAsync(Location location, CancellationToken cancellationToken = default)
+    {
+        _locations[location.Id] = location;
+        _nameIndex[location.Name.Value] = location.Id;
+        return Task.CompletedTask;
+    }
 }

@@ -35,7 +35,7 @@ public sealed partial class DepartmentRepository : IDepartmentRepository
         }
     }
 
-    public async Task SaveChangeAsync(CancellationToken cancellationToken = default)
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -59,6 +59,24 @@ public sealed partial class DepartmentRepository : IDepartmentRepository
             .AnyAsync(d => d.Name == slugValueObject, cancellationToken);
     }
 
+    public async Task UpdateAsync(Department department, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _dbContext.Departments.Update(department);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            LogUpdateError(ex, department.Name.Value);
+            throw new InfrastructureException($"He удалось обновить подразделение '{department.Name.Value}'", ex);
+        }
+    }
+
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения подразделения с именем {Name}")]
     private partial void LogSaveError(Exception ex, string name);
+
+    [LoggerMessage(LogLevel.Error, "Ошибка обновления подразделения с именем {Name}")]
+    private partial void LogUpdateError(Exception ex, string name);
+
 }

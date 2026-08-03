@@ -61,9 +61,43 @@ public sealed partial class DepartmentLocationRepository : IDepartmentLocationRe
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<bool> ExistsAsync(Guid departmentId, Guid locationId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.DepartmentLocations
+            .AnyAsync(dl => dl.DepartmentId == departmentId && dl.LocationId == locationId, cancellationToken);
+    }
+
+    public async Task<DepartmentLocation?> GetByDepartmentAndLocationAsync(
+        Guid departmentId,
+        Guid locationId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.DepartmentLocations
+            .FirstOrDefaultAsync(dl => dl.DepartmentId == departmentId && dl.LocationId == locationId, cancellationToken);
+    }
+
+    public async Task RemoveAsync(DepartmentLocation departmentLocation, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _dbContext.DepartmentLocations.Remove(departmentLocation);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            LogRemoveError(ex, departmentLocation.DepartmentId, departmentLocation.LocationId); throw new InfrastructureException(
+            $"Нe удалось удалить связь подразделения {departmentLocation.DepartmentId} с локацией {departmentLocation.LocationId}", ex);
+        }
+
+    }
+
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения связи подразделения с локацией DepartmentId={DepartmentId}, LocationId={LocationId}")]
     private partial void LogSaveError(Exception ex, Guid departmentId, Guid locationId);
 
     [LoggerMessage(LogLevel.Error, "Ошибка сохранения {Count} связей подразделений с локациями")]
     private partial void LogSaveRangeError(Exception ex, int count);
+
+    [LoggerMessage(LogLevel.Error, "Ошибка удаления связи подразделения с локацией DepartmentId={DepartmentId}, LocationId={LocationId}")]
+    private partial void LogRemoveError(Exception ex, Guid departmentId, Guid locationId);
+
 }

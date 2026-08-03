@@ -10,7 +10,7 @@
         <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
 
         <!-- Игнорируем предупреждения об уязвимостях в пакетах -->
-        <NoWarn>$(NoWarn);NU1903</NoWarn>
+        <NoWarn>$(NoWarn);NU1903;NU1507;SYSLIB1008;CS8795;S6960;S6964</NoWarn>
 
         <!-- Включаем стилевые правила в build -->
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

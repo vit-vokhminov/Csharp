@@ -106,7 +106,7 @@ public sealed class CreateDepartmentUseCase
         }
 
         // Атомарное сохранение: подразделение и все связи сохраняются одним коммитом
-        await _departmentRepository.SaveChangeAsync(cancellationToken);
+        await _departmentRepository.SaveChangesAsync(cancellationToken);
 
         return newDepartment;
     }

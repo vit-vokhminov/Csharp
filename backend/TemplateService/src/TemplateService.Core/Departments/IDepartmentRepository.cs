@@ -44,5 +44,13 @@ public interface IDepartmentRepository
     /// </summary>
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Задача выполнения.</returns>
-    Task SaveChangeAsync(CancellationToken cancellationToken = default);
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Обновляет существующее подразделение.
+    /// </summary>
+    /// <param name="department">Подразделение для обновления.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Задача выполнения.</returns>
+    Task UpdateAsync(Department department, CancellationToken cancellationToken = default);
 }
